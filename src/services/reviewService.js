@@ -8,8 +8,13 @@ export const reviewService = {
 
     async getReviewsByBookId(bookId, page, size) {
         const response = await apiClient.get(`/books/${bookId}/reviews`, {
-            params: { page, size, sort: 'createdAt,desc' }
+            params: {page, size, sort: 'createdAt,desc'}
         });
+        return response.data;
+    },
+
+    async getRecentReviews(count = 3) {
+        const response = await apiClient.get('/reviews/recent', {params: {count}})
         return response.data;
     },
 

@@ -24,26 +24,22 @@ const BookCover = ({book, className = ''}) => {
 export const HomePage = () => {
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
-    const [allBooks, setAllBooks] = useState([]);
+    const [recentlyAddedBooks, setRecentlyAddedBooks] = useState([]);
+    const [topRatedBooks, setTopRatedBooks] = useState([]);
     const [recentReviews, setRecentReviews] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const page = await bookService.getAllBooks(0, 50);
-                const books = page.content ?? [];
-                setAllBooks(books);
-
-                // Fetch reviews for the first few books to get recent ones
-                const reviewPromises = books.slice(0, 5).map(b =>
-                    reviewService.getReviewsByBookId(b.id, 0, 3)
-                        .then(page => (page.content || []).map(r => ({...r, bookTitle: b.title, bookId: b.id})))
-                        .catch(() => [])
-                );
-                const nested = await Promise.all(reviewPromises);
-                const flat = nested.flat().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
-                setRecentReviews(flat);
+                const [recentlyAdded, topRated, recent] = await Promise.all([
+                    bookService.getRecentlyAddedBooks(3),
+                    bookService.getTopRatedBooks(4),
+                    reviewService.getRecentReviews(5)
+                ]);
+                setRecentlyAddedBooks(recentlyAdded)
+                setTopRatedBooks(topRated)
+                setRecentReviews(recent)
             } catch (err) {
                 console.error('Failed to fetch homepage data', err);
             } finally {
@@ -58,22 +54,7 @@ export const HomePage = () => {
         if (query.trim()) navigate(`/books?search=${encodeURIComponent(query.trim())}`);
     };
 
-    const topRated = [...allBooks]
-        .filter(b => b.reviews?.length > 0)
-        .sort((a, b) => {
-            const avg = arr => arr.reduce((s, r) => s + r.rating, 0) / arr.length;
-            return avg(b.reviews) - avg(a.reviews);
-        })
-        .slice(0, 4);
-
-    const recentBooks = [...allBooks]
-        .sort((a, b) => b.id - a.id)
-        .slice(0, 3);
-
-    const avgRating = (reviews) => {
-        if (!reviews?.length) return 0;
-        return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
-    };
+    const heroBooks = [recentlyAddedBooks[2], topRatedBooks[0], recentlyAddedBooks[1]].filter(Boolean);
 
     const initials = (name) => name ? name.slice(0, 2).toUpperCase() : '??';
     const avatarColors = ['bg-purple-100 text-purple-700', 'bg-green-100 text-green-700', 'bg-pink-100 text-pink-700', 'bg-blue-100 text-blue-700'];
@@ -110,7 +91,7 @@ export const HomePage = () => {
                     </form>
                 </div>
                 <div className="hidden md:flex gap-3 flex-shrink-0">
-                    {allBooks.slice(0, 3).map((book, i) => (
+                    {heroBooks.map((book, i) => (
                         <Link to={`/books/${book.id}`} key={book.id}>
                             <BookCover
                                 book={book}
@@ -122,14 +103,14 @@ export const HomePage = () => {
             </div>
 
             {/* Top Rated */}
-            {topRated.length > 0 && (
+            {topRatedBooks.length > 0 && (
                 <div>
                     <div className="flex justify-between items-baseline mb-4">
                         <h2 className="text-lg font-bold text-gray-900">Top rated</h2>
                         <Link to="/books" className="text-sm text-blue-500 hover:text-blue-600">View all</Link>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {topRated.map(book => (
+                        {topRatedBooks.map(book => (
                             <Link to={`/books/${book.id}`} key={book.id}
                                   className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                                 <BookCover book={book} className="w-full h-28"/>
@@ -139,8 +120,8 @@ export const HomePage = () => {
                                         {book.authors?.map(a => a.fullName).join(', ')}
                                     </p>
                                     <div className="flex items-center gap-1.5">
-                                        <StarRating rating={avgRating(book.reviews)}/>
-                                        <span className="text-xs text-gray-400">· {book.reviews?.length} reviews</span>
+                                        <StarRating rating={book.avgRating}/>
+                                        <span className="text-xs text-gray-400">· {book.reviewCount} reviews</span>
                                     </div>
                                 </div>
                             </Link>
@@ -150,14 +131,14 @@ export const HomePage = () => {
             )}
 
             {/* Recently Added */}
-            {recentBooks.length > 0 && (
+            {recentlyAddedBooks.length > 0 && (
                 <div>
                     <div className="flex justify-between items-baseline mb-4">
                         <h2 className="text-lg font-bold text-gray-900">Recently added</h2>
                         <Link to="/books" className="text-sm text-blue-500 hover:text-blue-600">View all</Link>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {recentBooks.map(book => (
+                        {recentlyAddedBooks.map(book => (
                             <Link to={`/books/${book.id}`} key={book.id}
                                   className="bg-white border border-gray-100 rounded-xl p-3 flex gap-3 items-start hover:shadow-md transition-shadow">
                                 <BookCover book={book} className="w-12 h-16 flex-shrink-0"/>

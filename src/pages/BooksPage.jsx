@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { bookService } from '../services/bookService';
-import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, {useState, useEffect, useCallback} from 'react';
+import {Link, useSearchParams} from 'react-router-dom';
+import {bookService} from '../services/bookService';
+import {useAuth} from '../context/AuthContext';
+import {ChevronLeft, ChevronRight} from 'lucide-react';
 
 const PAGE_SIZE = 20;
 
-const BookCover = ({ book, className = '' }) => {
+const BookCover = ({book, className = ''}) => {
     const coverUrl = bookService.getCoverUrl(book.coverUrl);
     const colors = ['bg-blue-100', 'bg-green-100', 'bg-pink-100', 'bg-purple-100', 'bg-amber-100', 'bg-teal-100'];
     const color = colors[book.id % colors.length];
     return (
         <div className={`rounded-t-xl overflow-hidden flex items-end ${color} ${className}`}>
             {coverUrl
-                ? <img src={coverUrl} alt={book.title} className="w-full h-full object-cover" />
+                ? <img src={coverUrl} alt={book.title} className="w-full h-full object-cover"/>
                 : <span className="text-xs font-medium p-2 leading-tight opacity-60 line-clamp-3">{book.title}</span>
             }
         </div>
@@ -25,7 +25,7 @@ const avgRating = (reviews) => {
     return (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
 };
 
-const Pagination = ({ page, totalPages, onPageChange }) => {
+const Pagination = ({page, totalPages, onPageChange}) => {
     if (totalPages <= 1) return null;
 
     // Show: first, last, current ±1, ellipsis elsewhere
@@ -45,7 +45,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
                 disabled={page === 0}
                 className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={16}/>
             </button>
 
             {pages.map((p, i) =>
@@ -68,14 +68,14 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
                 disabled={page >= totalPages - 1}
                 className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-                <ChevronRight size={16} />
+                <ChevronRight size={16}/>
             </button>
         </div>
     );
 };
 
 export const BooksPage = () => {
-    const { isAdminOrMod } = useAuth();
+    const {isAdminOrMod} = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const searchQuery = searchParams.get('search') || '';
@@ -87,7 +87,9 @@ export const BooksPage = () => {
     const [error, setError] = useState(null);
 
     // Sync input when URL changes (e.g. navigating from HomePage search)
-    useEffect(() => { setInputValue(searchQuery); }, [searchQuery]);
+    useEffect(() => {
+        setInputValue(searchQuery);
+    }, [searchQuery]);
 
     const fetchBooks = useCallback(async () => {
         setLoading(true);
@@ -105,12 +107,14 @@ export const BooksPage = () => {
         }
     }, [searchQuery, currentPage]);
 
-    useEffect(() => { fetchBooks(); }, [fetchBooks]);
+    useEffect(() => {
+        fetchBooks();
+    }, [fetchBooks]);
 
     const handleSearch = (e) => {
         e.preventDefault();
         const q = inputValue.trim();
-        setSearchParams(q ? { search: q, page: '0' } : {});
+        setSearchParams(q ? {search: q, page: '0'} : {});
     };
 
     const handlePageChange = (newPage) => {
@@ -118,10 +122,10 @@ export const BooksPage = () => {
         if (searchQuery) params.search = searchQuery;
         params.page = String(newPage);
         setSearchParams(params);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     };
 
-    const books      = pageData?.content ?? [];
+    const books = pageData?.content ?? [];
     const totalPages = pageData?.page?.totalPages ?? pageData?.totalPages ?? 0;
     const totalItems = pageData?.page?.totalElements ?? pageData?.totalElements ?? 0;
 
@@ -148,7 +152,10 @@ export const BooksPage = () => {
                 </button>
                 {searchQuery && (
                     <button type="button"
-                            onClick={() => { setSearchParams({}); setInputValue(''); }}
+                            onClick={() => {
+                                setSearchParams({});
+                                setInputValue('');
+                            }}
                             className="px-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
                         ✕
                     </button>
@@ -171,14 +178,15 @@ export const BooksPage = () => {
                             return (
                                 <Link to={`/books/${book.id}`} key={book.id}
                                       className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                                    <BookCover book={book} className="w-full h-36" />
+                                    <BookCover book={book} className="w-full h-36"/>
                                     <div className="p-3">
                                         <p className="text-sm font-medium text-gray-900 truncate">{book.title}</p>
                                         <p className="text-xs text-gray-400 truncate mb-1">
                                             {book.authors?.map(a => a.fullName).join(', ')}
                                         </p>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                                            <span
+                                                className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
                                                 {book.genre}
                                             </span>
                                             {rating && (
@@ -192,7 +200,8 @@ export const BooksPage = () => {
                         {isAdminOrMod && currentPage === 0 && (
                             <Link to="/books/add"
                                   className="bg-white border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center h-full min-h-[180px] hover:border-blue-300 hover:bg-blue-50 transition-colors group">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 group-hover:bg-blue-200 transition-colors">
+                                <div
+                                    className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 group-hover:bg-blue-200 transition-colors">
                                     <span className="text-blue-500 text-xl font-light">+</span>
                                 </div>
                                 <span className="text-sm text-blue-500 font-medium">Add Book</span>

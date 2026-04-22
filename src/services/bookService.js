@@ -2,17 +2,27 @@ import apiClient from "./axiosClient";
 
 export const bookService = {
     async getAllBooks(page = 0, size = 20) {
-        const response = await apiClient.get('/books', { params: { page, size, sort: 'id,desc' } });
+        const response = await apiClient.get('/books', {params: {page, size, sort: 'id,desc'}});
         return response.data;
     },
 
     async searchBooks(query, page = 0, size = 20) {
-        const response = await apiClient.get('/books/search', { params: { query, page, size, sort: 'id,desc' } });
+        const response = await apiClient.get('/books/search', {params: {query, page, size, sort: 'id,desc'}});
         return response.data;
     },
 
     async getPendingBooks() {
         const response = await apiClient.get('/books/pending');
+        return response.data;
+    },
+
+    async getRecentlyAddedBooks(count = 3) {
+        const response = await apiClient.get('/books/recently-added', {params: {count}})
+        return response.data;
+    },
+
+    async getTopRatedBooks(count = 4) {
+        const response = await apiClient.get('/books/top-rated', {params: {count}})
         return response.data;
     },
 
@@ -39,7 +49,7 @@ export const bookService = {
     },
 
     async changeStatus(bookId, status) {
-        const response = await apiClient.patch(`/books/${bookId}/status`, { status });
+        const response = await apiClient.patch(`/books/${bookId}/status`, {status});
         return response.data;
     },
 
