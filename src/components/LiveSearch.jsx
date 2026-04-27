@@ -54,8 +54,10 @@ export const LiveSearch = () => {
         navigate(`/books/${id}`);
     };
 
+    const colors = ['bg-blue-100', 'bg-green-100', 'bg-pink-100', 'bg-purple-100', 'bg-amber-100', 'bg-teal-100'];
+
     return (
-        <div className="relative w-full max-w-sm" ref={dropdownRef}>
+        <div className="relative w-full" ref={dropdownRef}>
             <div className="relative">
                 <input
                     type="text"
@@ -66,14 +68,14 @@ export const LiveSearch = () => {
                     }}
                     onFocus={() => setShowDropdown(true)}
                     placeholder="Search books..."
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-8 pr-3 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300"
                 />
-                <div className="absolute left-3 top-2.5 text-gray-400">
-                    <Search size={20}/>
+                <div className="absolute left-2.5 top-2 text-gray-400">
+                    <Search size={14}/>
                 </div>
                 {isLoading && (
-                    <div className="absolute right-3 top-2.5 text-blue-500">
-                        <Loader2 size={20} className="animate-spin"/>
+                    <div className="absolute right-2.5 top-2 text-blue-400">
+                        <Loader2 size={14} className="animate-spin"/>
                     </div>
                 )}
             </div>
@@ -91,11 +93,19 @@ export const LiveSearch = () => {
                                 <li
                                     key={book.id}
                                     onClick={() => handleResultClick(book.id)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ease-in-out"
+                                    className="px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3"
                                 >
-                                    <div className="font-medium text-gray-800">{book.title}</div>
-                                    <div className="text-sm text-gray-500">
-                                        {book.authors?.map(a => a.fullName).join(', ') || 'Unknown Author'}
+                                    <div className={`w-10 h-14 rounded flex-shrink-0 overflow-hidden flex items-end ${colors[book.id % colors.length]}`}>
+                                        {book.coverUrl
+                                            ? <img src={bookService.getCoverUrl(book.coverUrl)} alt="" className="w-full h-full object-cover"/>
+                                            : <span className="text-xs p-1 opacity-50 font-medium leading-tight line-clamp-2">{book.title}</span>
+                                        }
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">{book.title}</div>
+                                        <div className="text-xs text-gray-400 truncate mt-0.5">
+                                            {book.authors?.map(a => a.fullName).join(', ') || 'Unknown Author'}
+                                        </div>
                                     </div>
                                 </li>
                             ))}
