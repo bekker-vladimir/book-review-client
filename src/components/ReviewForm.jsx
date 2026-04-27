@@ -1,54 +1,65 @@
 import {useState} from "react";
 import {reviewService} from "../services/reviewService";
 
+const LABELS = ['', 'Terrible', 'Not great', 'Okay', 'Good', 'Excellent'];
+
 export const ReviewForm = ({bookId, onReviewAdded}) => {
-    const [review, setReview] = useState({
-        rating: 1,
-        comment: ''
-    });
+    const [rating, setRating] = useState(0);
+    const [hovered, setHovered] = useState(0);
+    const [comment, setComment] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!rating) return alert('Please select a rating');
         try {
-            const newReview = await reviewService.createReview(review, bookId);
+            const newReview = await reviewService.createReview({rating, comment}, bookId);
             onReviewAdded(newReview);
-            setReview({rating: 1, comment: ''});
+            setRating(0);
+            setComment('');
         } catch (error) {
-            console.error('Failed to submit review:', error);
             alert(error.response?.data?.message || `Failed to submit review: ${error.message}`);
         }
     };
 
+    const active = hovered || rating;
+
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                <select
-                    value={review.rating}
-                    onChange={(e) => setReview({...review, rating: Number(e.target.value)})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                >
-                    {[1, 2, 3, 4, 5].map(num => (
-                        <option key={num} value={num}>{num} Stars</option>
+                <p className="text-xs text-gray-400 mb-2">Your rating</p>
+                <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map(val => (
+                        <button
+                            key={val}
+                            type="button"
+                            onClick={() => setRating(val)}
+                            onMouseEnter={() => setHovered(val)}
+                            onMouseLeave={() => setHovered(0)}
+                            className={`text-3xl leading-none transition-transform hover:scale-110 
+                                ${val <= active ? 'text-amber-400' : 'text-gray-200'}`}
+                        >★</button>
                     ))}
-                </select>
+                    <span className="text-xs text-gray-400 ml-2">
+                        {active ? `— ${LABELS[active]}` : '— not rated'}
+                    </span>
+                </div>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Review</label>
+                <p className="text-xs text-gray-400 mb-2">Your review</p>
                 <textarea
-                    value={review.comment}
-                    onChange={(e) => setReview({...review, comment: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all min-h-[100px] whitespace-pre-wrap"
-                    placeholder="Write your review here..."
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}
+                    placeholder="Share your thoughts about this book..."
                     rows={4}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 resize-none transition-all"
                 />
             </div>
-            <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-                Submit Review
-            </button>
+            <div className="flex justify-end">
+                <button type="submit"
+                        className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    Submit review
+                </button>
+            </div>
         </form>
     );
 };
