@@ -22,10 +22,10 @@ export const Header = () => {
                 <div className="flex justify-between h-14 items-center gap-6">
                     <div className="flex items-center gap-6 flex-1 min-w-0">
                         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-                            <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-                            <span className="text-base font-bold text-gray-900 hidden sm:block">Book Review</span>
+                            <img src="/logo.png" alt="Logo" className="h-10 w-10" />
+                            <span className="text-lg font-bold text-gray-900 hidden sm:block">Book Review</span>
                         </Link>
-                        <div className="flex-1 max-w-sm hidden md:block">
+                        <div className="w-96 hidden md:block">
                             <LiveSearch />
                         </div>
                     </div>
