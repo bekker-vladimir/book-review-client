@@ -3,7 +3,7 @@ import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import {Header} from './components/Header';
 import {HomePage} from './pages/HomePage';
 import {BookDetailsPage} from './pages/BookDetailsPage';
-import {BooksPage} from "./pages/BooksPage";
+import BooksPage from "./pages/BooksPage";
 import {AddBookPage} from './pages/AddBookPage';
 import {AdminDashboard} from './pages/AdminDashboard';
 import {LoginPage} from './pages/auth/LoginPage';

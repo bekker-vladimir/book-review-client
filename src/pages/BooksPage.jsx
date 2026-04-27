@@ -3,28 +3,9 @@ import {Link, useSearchParams} from 'react-router-dom';
 import {bookService} from '../services/bookService';
 import {useAuth} from '../context/AuthContext';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
+import {BookCard} from "../components/BookCard";
 
 const PAGE_SIZE = 20;
-
-const BookCover = ({book, className = ''}) => {
-    const coverUrl = bookService.getCoverUrl(book.coverUrl);
-    const colors = ['bg-blue-100', 'bg-green-100', 'bg-pink-100', 'bg-purple-100', 'bg-amber-100', 'bg-teal-100'];
-    const color = colors[book.id % colors.length];
-    return (
-        <div className={`rounded-t-xl overflow-hidden flex items-end ${color} ${className}`}>
-            {coverUrl
-                ? <img src={coverUrl} alt={book.title} className="w-full h-full object-cover"/>
-                : <span className="text-xs font-medium p-2 leading-tight opacity-60 line-clamp-3">{book.title}</span>
-            }
-        </div>
-    );
-};
-
-const avgRating = (reviews) => {
-    if (!reviews?.length) return null;
-    return (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
-};
-
 const Pagination = ({page, totalPages, onPageChange}) => {
     if (totalPages <= 1) return null;
 
@@ -74,7 +55,7 @@ const Pagination = ({page, totalPages, onPageChange}) => {
     );
 };
 
-export const BooksPage = () => {
+const BooksPage = () => {
     const {isAdminOrMod} = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -173,30 +154,7 @@ export const BooksPage = () => {
             ) : (
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        {books.map(book => {
-                            const rating = avgRating(book.reviews);
-                            return (
-                                <Link to={`/books/${book.id}`} key={book.id}
-                                      className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                                    <BookCover book={book} className="w-full h-36"/>
-                                    <div className="p-3">
-                                        <p className="text-sm font-medium text-gray-900 truncate">{book.title}</p>
-                                        <p className="text-xs text-gray-400 truncate mb-1">
-                                            {book.authors?.map(a => a.fullName).join(', ')}
-                                        </p>
-                                        <div className="flex items-center justify-between">
-                                            <span
-                                                className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                                                {book.genre}
-                                            </span>
-                                            {rating && (
-                                                <span className="text-xs text-amber-500 font-medium">★ {rating}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Link>
-                            );
-                        })}
+                        {books.map(book => <BookCard key={book.id} book={book}/>)}
                         {isAdminOrMod && currentPage === 0 && (
                             <Link to="/books/add"
                                   className="bg-white border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center h-full min-h-[180px] hover:border-blue-300 hover:bg-blue-50 transition-colors group">
@@ -219,3 +177,4 @@ export const BooksPage = () => {
         </div>
     );
 };
+export default BooksPage
