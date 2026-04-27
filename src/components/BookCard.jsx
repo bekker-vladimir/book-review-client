@@ -1,29 +1,37 @@
 import React from 'react';
-import {Link} from "react-router-dom";
-import {calculateRating} from "../utils/calculateRating";
+import {Link} from 'react-router-dom';
+import {bookService} from '../services/bookService';
+
+const colors = ['bg-blue-100', 'bg-green-100', 'bg-pink-100', 'bg-purple-100', 'bg-amber-100', 'bg-teal-100'];
 
 export const BookCard = ({book}) => {
-    const reviewsArray = book?.reviews ? Object.values(book.reviews) : [];
-    const rating = calculateRating(reviewsArray);
+    const coverUrl = bookService.getCoverUrl(book.coverUrl);
+    const color = colors[book.id % colors.length];
 
     return (
-        <div className="flex flex-col h-full bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex-1">
-                <h3 className="text-xl font-bold mb-2">{book?.title}</h3>
-                <p className="text-gray-500 mb-4">{book?.genre}</p>
+        <Link to={`/books/${book.id}`}
+              className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+            <div className={`rounded-t-xl overflow-hidden flex items-end ${color} w-full h-36`}>
+                {coverUrl
+                    ? <img src={coverUrl} alt={book.title} className="w-full h-full object-cover"/>
+                    :
+                    <span className="text-xs font-medium p-2 leading-tight opacity-60 line-clamp-3">{book.title}</span>
+                }
             </div>
-            <div className="mt-auto">
-                <div className="flex items-center mb-4">
-                    <span className="text-yellow-400 mr-2">★</span>
-                    <span>{rating.toFixed(1)} ({reviewsArray.length} reviews)</span>
+            <div className="p-3">
+                <p className="text-sm font-medium text-gray-900 truncate">{book.title}</p>
+                <p className="text-xs text-gray-400 truncate mb-1">
+                    {book.authors?.map(a => a.fullName).join(', ')}
+                </p>
+                <div className="flex items-center justify-between">
+                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                        {book.genre}
+                    </span>
+                    {book.reviewCount > 0 && (
+                        <span className="text-xs text-amber-500 font-medium">★ {book.avgRating?.toFixed(1)}</span>
+                    )}
                 </div>
-                <Link
-                    to={`/books/${book?.id}`}
-                    className="block w-full text-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                    View Details
-                </Link>
             </div>
-        </div>
+        </Link>
     );
 };
