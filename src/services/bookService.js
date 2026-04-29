@@ -1,13 +1,26 @@
 import apiClient from "./axiosClient";
 
 export const bookService = {
-    async getAllBooks(page = 0, size = 20) {
-        const response = await apiClient.get('/books', {params: {page, size, sort: 'id,desc'}});
+    async getAllBooks(page = 0, size = 20, sortField = 'id', sortDir = 'desc') {
+        const response = await apiClient.get('/books', {
+            params: {
+                page,
+                size,
+                sort: `${sortField},${sortDir}`
+            }
+        });
         return response.data;
     },
 
-    async searchBooks(query, page = 0, size = 20) {
-        const response = await apiClient.get('/books/search', {params: {query, page, size, sort: 'id,desc'}});
+    async searchBooks(query, page = 0, size = 20, sortField = 'id', sortDir = 'desc') {
+        const response = await apiClient.get('/books/search', {
+            params: {
+                query,
+                page,
+                size,
+                sort: `${sortField},${sortDir}`
+            }
+        });
         return response.data;
     },
 

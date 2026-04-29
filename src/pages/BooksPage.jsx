@@ -2,7 +2,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
 import {bookService} from '../services/bookService';
 import {useAuth} from '../context/AuthContext';
-import {ChevronLeft, ChevronRight} from 'lucide-react';
+import {ChevronLeft, ChevronRight, ArrowDown, ArrowUp} from 'lucide-react';
 import {BookCard} from "../components/BookCard";
 
 const PAGE_SIZE = 20;
@@ -61,6 +61,8 @@ const BooksPage = () => {
 
     const searchQuery = searchParams.get('search') || '';
     const currentPage = parseInt(searchParams.get('page') || '0', 10);
+    const sortField = searchParams.get('sort') || 'id';
+    const sortDir = searchParams.get('dir') || 'desc';
 
     const [inputValue, setInputValue] = useState(searchQuery);
     const [pageData, setPageData] = useState(null);
@@ -77,8 +79,8 @@ const BooksPage = () => {
         setError(null);
         try {
             const data = searchQuery
-                ? await bookService.searchBooks(searchQuery, currentPage, PAGE_SIZE)
-                : await bookService.getAllBooks(currentPage, PAGE_SIZE);
+                ? await bookService.searchBooks(searchQuery, currentPage, PAGE_SIZE, sortField, sortDir)
+                : await bookService.getAllBooks(currentPage, PAGE_SIZE, sortField, sortDir);
             console.log('fetchBooks response:', data);
             setPageData(data);
         } catch {
@@ -86,7 +88,7 @@ const BooksPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, currentPage]);
+    }, [searchQuery, currentPage, sortField, sortDir]);
 
     useEffect(() => {
         fetchBooks();
@@ -95,20 +97,38 @@ const BooksPage = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         const q = inputValue.trim();
-        setSearchParams(q ? {search: q, page: '0'} : {});
+        const params = {page: '0', sort: sortField, dir: sortDir};
+        if (q) params.search = q;
+        setSearchParams(params);
     };
 
     const handlePageChange = (newPage) => {
-        const params = {};
+        const params = {
+            sort: sortField,
+            dir: sortDir,
+            page: String(newPage)
+        };
         if (searchQuery) params.search = searchQuery;
-        params.page = String(newPage);
         setSearchParams(params);
         window.scrollTo({top: 0, behavior: 'smooth'});
+    };
+
+    const handleSort = (field) => {
+        const newDir = sortField === field && sortDir === 'desc' ? 'asc' : 'desc';
+        const params = {sort: field, dir: newDir, page: '0'};
+        if (searchQuery) params.search = searchQuery;
+        setSearchParams(params);
     };
 
     const books = pageData?.content ?? [];
     const totalPages = pageData?.page?.totalPages ?? pageData?.totalPages ?? 0;
     const totalItems = pageData?.page?.totalElements ?? pageData?.totalElements ?? 0;
+
+    const sortingFields = [
+        {label: "Date", field: "approvedAt"},
+        {label: "Rating", field: "avgRating"},
+        {label: "Title", field: "title"}
+    ]
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -119,29 +139,55 @@ const BooksPage = () => {
                 )}
             </div>
 
-            <form onSubmit={handleSearch} className="flex gap-2 mb-6 max-w-sm">
-                <input
-                    type="text"
-                    value={inputValue}
-                    onChange={e => setInputValue(e.target.value)}
-                    placeholder="Search by title or author..."
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-                />
-                <button type="submit"
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
-                    Search
-                </button>
-                {searchQuery && (
-                    <button type="button"
-                            onClick={() => {
-                                setSearchParams({});
-                                setInputValue('');
-                            }}
-                            className="px-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
-                        ✕
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-sm">
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={e => setInputValue(e.target.value)}
+                        placeholder="Search by title or author..."
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                    />
+                    <button type="submit"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                        Search
                     </button>
-                )}
-            </form>
+                    {searchQuery && (
+                        <button type="button"
+                                onClick={() => {
+                                    setSearchParams({sort: sortField, dir: sortDir});
+                                    setInputValue('');
+                                }}
+                                className="px-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                            ✕
+                        </button>
+                    )}
+                </form>
+
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Sort by:</span>
+                    {sortingFields.map(({label, field}) => {
+                        const isActive = sortField === field;
+                        return (
+                            <button
+                                key={field}
+                                onClick={() => handleSort(field)}
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors whitespace-nowrap
+                                    ${isActive
+                                    ? 'bg-blue-50 border-blue-200 text-blue-600'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                {label}
+                                {isActive && (
+                                    <span className="text-blue-500 flex items-center">
+                                        {sortDir === 'desc' ? <ArrowDown size={14}/> : <ArrowUp size={14}/>}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
 
             {loading ? (
                 <div className="py-16 text-gray-400 text-center text-sm">Loading...</div>
